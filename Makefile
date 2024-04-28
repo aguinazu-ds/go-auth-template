@@ -15,7 +15,7 @@ install:
 build:
 	@npx tailwindcss -i view/css/app.css -o public/styles.css
 	@templ generate view
-	@env GOOS=linux GOARCH=arm64 go build -o bin/${APP_NAME} main.go
+	@env GOOS=${GOOS} GOARCH=${GOARCH} go build -o bin/${APP_NAME} main.go
 
 up:
 	@go run cmd/migrate/main.go up
