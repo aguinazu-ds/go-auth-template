@@ -1,5 +1,7 @@
+include .env
+
 run: build
-	@./bin/go-auth-template
+	@./bin/${APP_NAME}
 
 install:
 	@go install github.com/a-h/templ/cmd/templ@latest
@@ -13,7 +15,7 @@ install:
 build:
 	@npx tailwindcss -i view/css/app.css -o public/styles.css
 	@templ generate view
-	@go build -o bin/go-auth-template main.go
+	@env GOOS=linux GOARCH=arm64 go build -o bin/${APP_NAME} main.go
 
 up:
 	@go run cmd/migrate/main.go up
