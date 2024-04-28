@@ -1,0 +1,37 @@
+package ui
+
+import "go-auth-template/view"
+
+templ Navigation() {
+	<div class="navbar bg-base-200">
+		<div class="flex-1">
+			<a class="text-xl font-black text-secondary cursor-pointer">app-citas-médicas</a>
+		</div>
+		<div class="flex-none">
+			<ul class="menu menu-horizontal px-1">
+				if view.AuthenticatedUser(ctx).LoggedIn {
+					<li>
+						<details>
+							<summary>
+								{ view.AuthenticatedUser(ctx).Email }
+							</summary>
+							<ul class=" bg-base-100 rounded-t-none">
+								<li><a>Profile</a></li>
+								@LogoutForm()
+							</ul>
+						</details>
+					</li>
+				} else {
+					<a class="btn btn-primary" href="/login">Login</a>
+					<a class="btn btn-secondary ml-3" href="/signup">Registro</a>
+				}
+			</ul>
+		</div>
+	</div>
+}
+
+templ LogoutForm() {
+	<form action="/logout" method="post">
+		<li><button class="">Logout</button></li>
+	</form>
+}
