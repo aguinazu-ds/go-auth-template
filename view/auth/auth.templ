@@ -85,6 +85,7 @@ type SignupErrors struct {
 	InvalidEmail     string
 	InvalidPassword  string
 	PasswordMismatch string
+	EmailInUse       string
 }
 
 templ Signup() {
@@ -112,6 +113,9 @@ templ SignupForm(params SignupParams, errors SignupErrors) {
 			<input type="email" value={ params.Email } name="email" placeholder="email" class="input input-bordered" required/>
 			if len(errors.InvalidEmail) > 0 {
 				<span class="text-error text-sm">{ errors.InvalidEmail }</span>
+			}
+			if len(errors.EmailInUse) > 0 {
+				<span class="text-error text-sm">{ errors.EmailInUse }</span>
 			}
 		</div>
 		<div class="form-control">
@@ -169,4 +173,44 @@ templ CallbackScript() {
 		var newUrl = url.replace("#", "?");
 		window.location = newUrl;
 	</script>
+}
+
+templ ActivationSuccess() {
+	@layout.App(false) {
+		<div class="card-body">
+			<div class=" text-center">
+				<div class="">
+					<h1 class="text-5xl font-bold">Cuenta Activada!</h1>
+					<p class="py-6">Tu cuenta ha sido activada exitosamente!</p>
+					<a href="/">
+						<button class="btn btn-primary">Volver al Inicio</button>
+					</a>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+type ActivationErrors struct {
+	InvalidToken string
+}
+
+templ ActivationError(errors ActivationErrors) {
+	@layout.App(false) {
+		<div class="card-body">
+			<div class=" text-center">
+				<div class="">
+					<h1 class="text-5xl font-bold">Error!</h1>
+					<p class="py-6">Hubo un error al activar tu cuenta</p>
+					<p class="text-error">{ errors.InvalidToken }</p>
+					<a href="/">
+						<button class="btn btn-primary">Volver al Inicio</button>
+					</a>
+					<a href="/">
+						<button class="btn btn-secondary">Reenviar Correo de Activación</button>
+					</a>
+				</div>
+			</div>
+		</div>
+	}
 }

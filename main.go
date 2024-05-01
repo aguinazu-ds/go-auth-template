@@ -4,6 +4,7 @@ import (
 	"embed"
 	"go-auth-template/db"
 	"go-auth-template/handler"
+	"go-auth-template/pkg/mailer"
 	"log/slog"
 	"net/http"
 	"os"
@@ -30,6 +31,7 @@ func main() {
 	router.Get("/login", handler.Make(handler.HandleAuthLogin))
 	router.Get("/signup", handler.Make(handler.HandleAuthSignup))
 	router.Post("/signup", handler.Make(handler.HandleAuthSignupPost))
+	router.Get("/activate", handler.Make(handler.HandleAuthActivate))
 
 	port := os.Getenv("APP_PORT")
 	slog.Info("Starting server on port " + port)
@@ -41,6 +43,9 @@ func initEverithing() error {
 		return err
 	}
 	if err := db.Init(); err != nil {
+		return err
+	}
+	if err := mailer.Init(); err != nil {
 		return err
 	}
 	return nil

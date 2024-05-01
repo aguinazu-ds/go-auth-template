@@ -1,12 +1,19 @@
 package handler
 
 import (
+	"context"
+	"database/sql"
+	"log/slog"
 	"net/http"
+	"os"
 
+	"go-auth-template/db"
+	"go-auth-template/pkg/argon2id"
+	"go-auth-template/pkg/mailer"
+	"go-auth-template/pkg/utils"
 	"go-auth-template/pkg/validator"
+	"go-auth-template/types"
 	"go-auth-template/view/auth"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
@@ -38,28 +45,105 @@ func HandleAuthSignupPost(w http.ResponseWriter, r *http.Request) error {
 		}))
 	}
 
-	// Create the user
-	hash, err := bcrypt.GenerateFromPassword([]byte(params.Password), 12)
+	// Hash the password
+	hash, err := argon2id.CreateHash(params.Password, argon2id.DefaultParams)
 	if err != nil {
 		return err
 	}
 
-	println("Hash: ", string(hash))
-
-	compare := bcrypt.CompareHashAndPassword(hash, []byte(params.Password))
-	if compare != nil {
-		println("Error: ", compare)
+	RawAppMetaData := map[string]interface{}{
+		"provider":  "email",
+		"providers": []string{"email"},
 	}
 
-	// user := types.User{
-	// 	Email: params.Email,
+	newUser := &types.User{
+		Email:             params.Email,
+		Activated:         false,
+		EncryptedPassword: string(hash),
+		RawAppMetaData:    RawAppMetaData,
+	}
 
-	// }
-	// if err := db.CreateUser(params.Email, params.Password); err != nil {
-	// 	return err
-	// }
+	// Start a transaction
+	tx, err := db.Bun.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
 
-	// Redirect to the login page
-	hxRedirect(w, r, "/login")
-	return nil
+	// Create the user
+	if err := db.CreateUser(newUser); err != nil {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"users_email_key\"" {
+			_ = tx.Rollback()
+			return render(r, w, auth.SignupForm(params, auth.SignupErrors{
+				EmailInUse: "El email ya está en uso.",
+			}))
+		}
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Create activation token
+	token, plaintext, err := utils.GenerateRandomTokenHash()
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Save the token in the database
+	if err := db.CreateActivationToken(token, newUser); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	data := mailer.WelcomeEmailData{
+		ActivationUrl: os.Getenv("APP_HOST") + "/activate?token=" + plaintext,
+	}
+
+	// Send welcome email with activation link
+	if err := mailer.SendEmailUsingTemplate(params.Email, "Bienvenido a la aplicación", "aguinazu-dev", "noreply@aguinazu-dev.xyz", "user_welcome.tmpl", data); err != nil {
+		return err
+	}
+
+	return render(r, w, auth.SignupSuccess(params.Email))
+}
+
+func HandleAuthActivate(w http.ResponseWriter, r *http.Request) error {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		slog.Error("token is empty")
+		return render(r, w, auth.ActivationError(auth.ActivationErrors{
+			InvalidToken: "Hubo un error al activar la cuenta. Por favor, intenta nuevamente. Si el problema persiste, contacta al soporte.",
+		}))
+	}
+
+	user, err := db.GetUserByToken(token, types.ScopeActivation)
+	if err != nil {
+		slog.Error("error getting user by token: ", err)
+		return render(r, w, auth.ActivationError(auth.ActivationErrors{
+			InvalidToken: "Hubo un error al activar la cuenta. Por favor, intenta nuevamente. Si el problema persiste, contacta al soporte.",
+		}))
+	}
+
+	user.Activated = true
+
+	if err := db.UpdateUser(&user); err != nil {
+		slog.Error("error updating user: ", err)
+		return render(r, w, auth.ActivationError(auth.ActivationErrors{
+			InvalidToken: "Hubo un error al activar la cuenta. Por favor, intenta nuevamente. Si el problema persiste, contacta al soporte.",
+		}))
+	}
+
+	// Delete all activation tokens for this user
+	if err := db.DeleteAllTokensByUserIDAndScope(user.ID, types.ScopeActivation); err != nil {
+		slog.Error("error deleting all tokens by user id and scope: ", err)
+		return render(r, w, auth.ActivationError(auth.ActivationErrors{
+			InvalidToken: "Hubo un error al activar la cuenta. Por favor, intenta nuevamente. Si el problema persiste, contacta al soporte.",
+		}))
+	}
+
+	return render(r, w, auth.ActivationSuccess())
 }

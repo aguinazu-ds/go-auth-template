@@ -37,7 +37,6 @@ func CreateDatabase(
 		host,
 		port,
 	)
-	println("URI: ", uri)
 	slog.Info("Connecting to database " + dbname)
 	db, err := sql.Open("postgres", uri)
 	if err != nil {
@@ -58,7 +57,6 @@ func Init() error {
 		pass   = os.Getenv("DB_PASSWORD")
 		dbname = os.Getenv("DB_NAME")
 	)
-	println("Host: ", host)
 	db, err := CreateDatabase(dbname, user, pass, host)
 	if err != nil {
 		log.Fatal(err)

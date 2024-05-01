@@ -33,6 +33,7 @@ func main() {
 	tables := []string{
 		"schema_migrations",
 		"accounts",
+		"tokens",
 		"users",
 	}
 

@@ -7,7 +7,7 @@ COPY . ./
 RUN make install
 RUN make build
 
-FROM scratch
+FROM gcr.io/distroless/static-debian12
 COPY --from=builder /app/bin/go-auth-template /go-auth-template
 COPY --from=builder /app/.env /.env
 

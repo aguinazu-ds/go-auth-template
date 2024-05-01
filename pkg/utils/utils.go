@@ -1,5 +1,11 @@
 package utils
 
+import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base32"
+)
+
 func ContainsUppercase(s string) bool {
 	for _, r := range s {
 		if r >= 'A' && r <= 'Z' {
@@ -43,4 +49,15 @@ func ContainsNoWhitespace(s string) bool {
 		}
 	}
 	return true
+}
+
+func GenerateRandomTokenHash() ([]byte, string, error) {
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return nil, "", err
+	}
+	plainText := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+	hash := sha256.Sum256([]byte(plainText))
+	return hash[:], plainText, nil
 }

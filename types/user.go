@@ -18,9 +18,8 @@ type AuthenticatedUser struct {
 type User struct {
 	ID                uuid.UUID              `bun:"id,pk,notnull,type:uuid,default:uuid_generate_v4()" json:"id"`
 	Email             string                 `bun:"email,unique,notnull" json:"email"`
-	Activated         bool                   `bun:"bool,notnull" json:"activated"`
+	Activated         bool                   `bun:"activated,notnull,default:false" json:"activated"`
 	EncryptedPassword string                 `json:"-"`
-	Salt              string                 `json:"-"`
 	ConfirmationToken string                 `json:"confirmation_token"`
 	ConfirmedAt       time.Time              `bun:"confirmed_at" json:"confirmed_at"`
 	RecoveryToken     string                 `json:"recovery_token"`
