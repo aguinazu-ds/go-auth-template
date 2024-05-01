@@ -66,3 +66,26 @@ func (v *Validator) ValidatePassword(password string) {
 		v.Errors["password"] = "La contraseña no debe tener espacios en blanco."
 	}
 }
+
+func (v *Validator) ValidateEmailPasswordForLogin(email, password string) {
+	if email == "" {
+		v.Errors["invalidCredentials"] = "Las credenciales ingresadas no son válidas."
+	}
+
+	if password == "" {
+		v.Errors["invalidCredentials"] = "Las credenciales ingresadas no son válidas."
+	}
+}
+
+// func (p *password) Matches(plaintextPassword string) (bool, error) {
+// 	err := bcrypt.CompareHashAndPassword(p.hash, []byte(plaintextPassword))
+// 	if err != nil {
+// 	switch {
+// 	case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+// 	return false, nil
+// 	default:
+// 	return false, err
+// 	}
+// 	}
+// 	return true, nil
+// 	}

@@ -9,6 +9,7 @@ import (
 
 	"go-auth-template/db"
 	"go-auth-template/pkg/argon2id"
+	"go-auth-template/pkg/authsession"
 	"go-auth-template/pkg/mailer"
 	"go-auth-template/pkg/utils"
 	"go-auth-template/pkg/validator"
@@ -18,6 +19,62 @@ import (
 
 func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
 	return render(r, w, auth.Login())
+}
+
+func HandleAuthLoginPost(w http.ResponseWriter, r *http.Request) error {
+	params := auth.LoginParams{
+		Email:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+	}
+
+	v := validator.New()
+	v.ValidateEmailPasswordForLogin(params.Email, params.Password)
+
+	if !v.Valid() {
+		return render(r, w, auth.LoginForm(params, auth.LoginErrors{
+			InvalidCredentials: v.Errors["invalidCredentials"],
+		}))
+	}
+
+	user, err := db.GetUserByEmail(params.Email)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			return render(r, w, auth.LoginForm(params, auth.LoginErrors{
+				InvalidCredentials: "Las credenciales ingresadas no son válidas.",
+			}))
+		}
+		return err
+	}
+
+	match, err := argon2id.ComparePasswordAndHash(params.Password, user.EncryptedPassword)
+	if err != nil {
+		return err
+	}
+
+	if !match {
+		return render(r, w, auth.LoginForm(params, auth.LoginErrors{
+			InvalidCredentials: "Las credenciales ingresadas no son válidas.",
+		}))
+	}
+
+	store := authsession.GetStore()
+	session, err := store.Get(r, "session")
+	if err != nil {
+		return err
+	}
+
+	session.Values["user"] = &types.AuthenticatedUser{
+		ID:       user.ID,
+		Email:    user.Email,
+		LoggedIn: true,
+	}
+
+	if err := session.Save(r, w); err != nil {
+		return err
+	}
+
+	hxRedirect(w, r, "/")
+	return nil
 }
 
 func HandleAuthSignup(w http.ResponseWriter, r *http.Request) error {

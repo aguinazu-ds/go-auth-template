@@ -11,6 +11,7 @@ type ContextKey string
 const UserContextKey ContextKey = "user"
 
 type AuthenticatedUser struct {
+	ID       uuid.UUID
 	Email    string
 	LoggedIn bool
 }

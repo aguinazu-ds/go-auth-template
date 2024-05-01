@@ -4,6 +4,7 @@ import (
 	"embed"
 	"go-auth-template/db"
 	"go-auth-template/handler"
+	"go-auth-template/pkg/authsession"
 	"go-auth-template/pkg/mailer"
 	"log/slog"
 	"net/http"
@@ -29,6 +30,7 @@ func main() {
 
 	// Auth
 	router.Get("/login", handler.Make(handler.HandleAuthLogin))
+	router.Post("/login", handler.Make(handler.HandleAuthLoginPost))
 	router.Get("/signup", handler.Make(handler.HandleAuthSignup))
 	router.Post("/signup", handler.Make(handler.HandleAuthSignupPost))
 	router.Get("/activate", handler.Make(handler.HandleAuthActivate))
@@ -48,5 +50,6 @@ func initEverithing() error {
 	if err := mailer.Init(); err != nil {
 		return err
 	}
+	authsession.Init()
 	return nil
 }

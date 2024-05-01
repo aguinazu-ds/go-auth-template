@@ -12,6 +12,8 @@ require (
 	github.com/getbrevo/brevo-go v1.0.3 // indirect
 	github.com/go-mail/mail/v2 v2.3.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/gorilla/sessions v1.2.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/resend/resend-go/v2 v2.6.0 // indirect

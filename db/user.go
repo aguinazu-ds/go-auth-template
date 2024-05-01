@@ -18,6 +18,12 @@ func UpdateUser(user *types.User) error {
 	return err
 }
 
+func GetUserByEmail(email string) (types.User, error) {
+	user := new(types.User)
+	err := Bun.NewSelect().Model(user).Where("email = ?", email).Scan(context.Background())
+	return *user, err
+}
+
 func GetUserByToken(token string, scope string) (types.User, error) {
 	tokenHash := sha256.Sum256([]byte(token))
 
