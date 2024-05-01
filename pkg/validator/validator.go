@@ -54,20 +54,12 @@ func (v *Validator) ValidatePassword(password string) {
 		v.Errors["password"] = "La contraseña debe tener menos de 72 caracteres."
 	}
 
-	if !utils.ContainsUppercase(password) {
-		v.Errors["password"] = "La contraseña debe tener al menos una letra mayúscula."
-	}
-
 	if !utils.ContainsLowercase(password) {
 		v.Errors["password"] = "La contraseña debe tener al menos una letra minúscula."
 	}
 
 	if !utils.ContainsNumber(password) {
 		v.Errors["password"] = "La contraseña debe tener al menos un número."
-	}
-
-	if !utils.ContainsSymbol(password) {
-		v.Errors["password"] = "La contraseña debe tener al menos un símbolo."
 	}
 
 	if !utils.ContainsNoWhitespace(password) {
