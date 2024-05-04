@@ -63,7 +63,7 @@ func HandleAuthLoginPost(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	session.Values["user"] = &types.AuthenticatedUser{
+	session.Values["user"] = types.AuthenticatedUser{
 		ID:       user.ID,
 		Email:    user.Email,
 		LoggedIn: true,
@@ -203,4 +203,21 @@ func HandleAuthActivate(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return render(r, w, auth.ActivationSuccess())
+}
+
+func HandleAuthLogoutPost(w http.ResponseWriter, r *http.Request) error {
+	store := authsession.GetStore()
+	session, err := store.Get(r, "session")
+	if err != nil {
+		return err
+	}
+
+	session.Values["user"] = nil
+
+	if err := session.Save(r, w); err != nil {
+		return err
+	}
+
+	hxRedirect(w, r, "/login")
+	return nil
 }

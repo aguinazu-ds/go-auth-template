@@ -76,16 +76,3 @@ func (v *Validator) ValidateEmailPasswordForLogin(email, password string) {
 		v.Errors["invalidCredentials"] = "Las credenciales ingresadas no son válidas."
 	}
 }
-
-// func (p *password) Matches(plaintextPassword string) (bool, error) {
-// 	err := bcrypt.CompareHashAndPassword(p.hash, []byte(plaintextPassword))
-// 	if err != nil {
-// 	switch {
-// 	case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
-// 	return false, nil
-// 	default:
-// 	return false, err
-// 	}
-// 	}
-// 	return true, nil
-// 	}

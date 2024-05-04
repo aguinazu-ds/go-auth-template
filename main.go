@@ -36,6 +36,13 @@ func main() {
 	router.Get("/signup", handler.Make(handler.HandleAuthSignup))
 	router.Post("/signup", handler.Make(handler.HandleAuthSignupPost))
 	router.Get("/activate", handler.Make(handler.HandleAuthActivate))
+	router.Post("/logout", handler.Make(handler.HandleAuthLogoutPost))
+
+	// Protected routes
+	router.Group(func(c chi.Router) {
+		c.Use(handler.WithAuth)
+		c.Get("/account", handler.Make(handler.HandleUserAccount))
+	})
 
 	port := os.Getenv("APP_PORT")
 	slog.Info("Starting server on port " + port)
