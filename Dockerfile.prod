@@ -1,0 +1,32 @@
+FROM golang:1.22-alpine as builder
+
+WORKDIR /app
+RUN apk add --no-cache make nodejs npm
+
+COPY . ./
+RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN go get ./...
+RUN go mod vendor
+RUN go mod tidy
+RUN go mod download
+RUN npm install -D tailwindcss
+RUN npm install -D daisyui@latest
+
+RUN make build
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=builder /app/bin/go-auth-template /go-auth-template
+COPY --from=builder /app/.env /.env
+
+EXPOSE 3000
+CMD ["./go-auth-template"]
+
+
+
+# @go install github.com/a-h/templ/cmd/templ@latest
+# 	@go get ./...
+# 	@go mod vendor
+# 	@go mod tidy
+# 	@go mod download
+# 	@npm install -D tailwindcss
+# 	@npm install -D daisyui@latest

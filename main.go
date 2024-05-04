@@ -23,6 +23,7 @@ func main() {
 	}
 
 	router := chi.NewMux()
+	router.Use(handler.WithUser)
 
 	// Routes
 	router.Handle("/*", http.StripPrefix("/", http.FileServer(http.FS(FS))))

@@ -63,7 +63,7 @@ func HandleAuthLoginPost(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	session.Values["user"] = &types.AuthenticatedUser{
+	session.Values["user"] = types.AuthenticatedUser{
 		ID:       user.ID,
 		Email:    user.Email,
 		LoggedIn: true,
