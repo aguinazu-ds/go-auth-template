@@ -28,6 +28,7 @@ func main() {
 	// Routes
 	router.Handle("/*", http.StripPrefix("/", http.FileServer(http.FS(FS))))
 	router.Get("/", handler.Make(handler.HandleHomeIndex))
+	router.Get("/health-check", handler.Make(handler.HandleHealthCheck))
 
 	// Auth
 	router.Get("/login", handler.Make(handler.HandleAuthLogin))
