@@ -5,7 +5,6 @@ RUN apk add --no-cache make nodejs npm
 
 COPY . ./
 RUN go install github.com/a-h/templ/cmd/templ@latest
-RUN go get ./...
 RUN go mod vendor
 RUN go mod tidy
 RUN go mod download
